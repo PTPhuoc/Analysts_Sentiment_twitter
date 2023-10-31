@@ -149,7 +149,12 @@ def select_user():
             soup = BeautifulSoup(get_page.get_attribute("innerHTML"), "html.parser")
             posts = soup.find_all("a", {"class", "tweet-link"})
             for m in range(5):
-                if dr.find_element(By.LINK_TEXT, "Load more") != "":
+                try:
+                    find = dr.find_element(By.LINK_TEXT, "Load more").text
+                except:
+                    find = ""
+
+                if find != "":
                     dr.find_element(By.LINK_TEXT, "Load more").click()
                     get_page = dr.find_element(By.TAG_NAME, "html")
                     soup = BeautifulSoup(get_page.get_attribute("innerHTML"), "html.parser")
