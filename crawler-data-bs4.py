@@ -2,7 +2,7 @@ import csv
 import re
 import pandas
 import requests
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup
 import pymongo
 
 
@@ -152,8 +152,7 @@ def select_user():
                 writer = csv.writer(file)
                 writer.writerow(
                     ["Name", "Tag Name", "Date Create Tweet", "Tag Tweet", "Content Tweet", "Comment", "Retweet",
-                     "Quote",
-                     "Heart", "Image", "Quote Link", "Quote Tag Name", "Quote Content"])
+                     "Quote", "Heart", "Image", "Quote Link", "Quote Tag Name", "Quote Content"])
             crawler_data(posts, i[1].values)
             print("Complete!")
 

@@ -98,8 +98,7 @@ def crawler_data(posts, User_Name):
             if Qoute.find("div", {"class", "quote-text"}) is None:
                 Quote_Content = "No Content"
             else:
-                Quote_Content = Qoute.find("div", {"class", "quote-text"}).text.replace("’", "").replace(",",
-                                                                                                         "").replace(
+                Quote_Content = Qoute.find("div", {"class", "quote-text"}).text.replace("’", "").replace(",", "").replace(
                     "\n", "")
         dr.get(url + "/" + "".join(User_Name))
         data = post_tweet(Name.text, Tag_Name.text, str(Date), Tag_Tweet, remove_emoji(Content_tweet),
@@ -161,15 +160,14 @@ def select_user():
                     posts_more = soup.find_all("a", {"class", "tweet-link"})
                     posts.extend(posts_more)
 
-            posts_link = list(set(posts))
-            with open("D:/data/" + "".join(i[1].values) + ".csv", "w", encoding="utf-8", newline="") as file:
+            with open("D:/data/" + "".join(i[1].values) + ".csv", "w", encoding="utf-8",
+                      newline="") as file:
                 writer = csv.writer(file)
                 writer.writerow(
                     ["Name", "Tag Name", "Date Create Tweet", "Tag Tweet", "Content Tweet", "Comment", "Retweet",
-                     "Quote",
-                     "Heart", "Image", "Quote Link", "Quote Tag Name", "Quote Content"])
-                crawler_data(posts_link, i[1].values)
+                     "Quote", "Heart", "Image", "Quote Link", "Quote Tag Name", "Quote Content"])
 
+            crawler_data(posts, i[1].values)
             print("Complete!")
 
 
@@ -183,6 +181,7 @@ headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 '
                   'Safari/537.36',
 }
+
 
 dr = webdriver.Firefox()
 wait = WebDriverWait(dr, 5)
