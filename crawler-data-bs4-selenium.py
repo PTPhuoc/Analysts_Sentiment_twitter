@@ -50,12 +50,24 @@ def remove_emoji(string):
     return emoji_pattern.sub(r'', string)
 
 
-def set_stats(data):
-    soup = BeautifulSoup()
-    for i in range(len(data)):
-        if data[i].text == "":
-            data[i] = soup.new_tag("div")
-            data[i].string = "0"
+def clean_data(Name, Tag_Name, Date, Tag_Tweet, Content_tweet,
+               Comment, Retweet, Quote, Heart, Picture,
+               Quote_links, Quote_name, Quote_Content):
+    Name = remove_emoji(Name)
+    Content_tweet = remove_emoji(Content_tweet.replace(",", "").replace(".", "").replace("\n", "").replace("'", ""))
+    Quote_Content = remove_emoji(Quote_Content.replace(",", "").replace(".", "").replace("\n", "").replace("'", ""))
+    Comment = Comment.replace(" ", "").replace(",", "")
+    Retweet = Retweet.replace(" ", "").replace(",", "")
+    Quote = Quote.replace(" ", "").replace(",", "")
+    Heart = Heart.replace(" ", "").replace(",", "")
+    data = post_tweet(Name, Tag_Name, Date, Tag_Tweet, Content_tweet,
+                      Comment, Retweet, Quote, Heart, Picture,
+                      Quote_links, Quote_name, Quote_Content)
+    print(data.Name + " " + data.Tag_Name + " " + data.Date + " " + data.Tag_Tweet + " " + remove_emoji(
+        Content_tweet) + " " + data.Comment + " " + data.Retweet + " " + data.Quote + " " + data.Heart + " " + data.Picture + " " + data.Quote_Link + " " + data.Quote_Name + " " + remove_emoji(
+        Quote_Content))
+    print("Success Save Data!")
+    save_data(data)
 
 
 def crawler_data(posts, User_Name):
@@ -63,56 +75,46 @@ def crawler_data(posts, User_Name):
         dr.get(url + post.get("href"))
         page_post = dr.find_element(By.TAG_NAME, "html")
         soup_link = BeautifulSoup(page_post.get_attribute("innerHTML"), "html.parser")
-        Name = soup_link.find("a", {"class", "fullname"})
-        Tag_Name = soup_link.find("a", {"class", "username"})
-        Date = soup_link.find("span", {"class", "tweet-date"}).find("a").get("title")
-        Tag_Tweet = soup_link.find("div", {"class", "tweet-content media-body"}).find("a")
-        if Tag_Tweet is None:
-            Tag_Tweet = "No Tag"
-        else:
-            Tag_Tweet = Tag_Tweet.text
+        if soup_link.find("a", {"class", "fullname"}) is not None:
+            Name = soup_link.find("a", {"class", "fullname"}).text
+            Tag_Name = soup_link.find("a", {"class", "username"}).text
+            Date = soup_link.find("span", {"class", "tweet-date"}).find("a").get("title")
+            if soup_link.find("div", {"class", "tweet-content media-body"}).find("a") is None:
+                Tag_Tweet = "No Tag"
+            else:
+                Tag_Tweet = soup_link.find("div", {"class", "tweet-content media-body"}).find("a").text
+            Content_tweet = soup_link.find("div", {"class", "tweet-content media-body"}).text
+            Tweet_State = soup_link.find("div", {"class", "tweet-stats"}).find_all("div", {"class", "icon-container"})
+            Image = soup_link.find("div", {"class", "tweet-body"}).find("div", {"class", "attachments"})
+            if Image is None:
+                Picture = "No Image"
+            elif Image.find("a", {"class", "still-image"}) is None:
+                Picture = "No Image"
+            else:
+                Image = Image.find("a", {"class", "still-image"}).get("href")
+                Picture = url + str(Image)
 
-        Content_tweet = soup_link.find("div", {"class", "tweet-content media-body"}).text.replace("’", "").replace(",",
-                                                                                                                   "").replace(
-            "\n", "")
-        Tweet_State = soup_link.find("div", {"class", "tweet-stats"}).find_all("div", {"class", "icon-container"})
-        set_stats(Tweet_State)
-        Image = soup_link.find("div", {"class", "tweet-body"}).find("div", {"class", "attachments"})
-        if Image is None:
-            Picture = "No Image"
-        elif Image.find("a", {"class", "still-image"}) is None:
-            Picture = "No Image"
-        else:
-            Image = Image.find("a", {"class", "still-image"}).get("href")
-            Picture = url + str(Image)
-
-        Qoute = soup_link.find("div", {"class", "tweet-body"}).find("div", {"class", "quote quote-big"})
-        if Qoute is None:
-            Quote_links = "No Qoute"
-            Quote_name = "No Name"
-            Quote_Content = "No Content"
-        else:
-            Qoute_link = Qoute.find("a").get("href")
-            Quote_links = url + Qoute_link
-            Quote_name = Qoute.find("a", {"class", "username"}).text
-            if Qoute.find("div", {"class", "quote-text"}) is None:
+            Qoute = soup_link.find("div", {"class", "tweet-body"}).find("div", {"class", "quote quote-big"})
+            if Qoute is None:
+                Quote_links = "No Qoute"
+                Quote_name = "No Name"
                 Quote_Content = "No Content"
             else:
-                Quote_Content = Qoute.find("div", {"class", "quote-text"}).text.replace("’", "").replace(",", "").replace(
-                    "\n", "")
-        dr.get(url + "/" + "".join(User_Name))
-        data = post_tweet(Name.text, Tag_Name.text, str(Date), Tag_Tweet, remove_emoji(Content_tweet),
-                          Tweet_State[0].text, Tweet_State[1].text, Tweet_State[2].text, Tweet_State[3].text, Picture,
-                          Quote_links, Quote_name, remove_emoji(Quote_Content))
-        save_data(data, User_Name)
-        print(data.Name + " " + data.Tag_Name + " " + data.Date + " " + data.Tag_Tweet + " " + remove_emoji(
-            Content_tweet) + " " + data.Comment + " " + data.Retweet + " " + data.Quote + " " + data.Heart + " " + data.Picture + " " + data.Quote_Link + " " + data.Quote_Name + " " + remove_emoji(
-            Quote_Content))
-        print("Success Save Data!")
+                Qoute_link = Qoute.find("a").get("href")
+                Quote_links = url + Qoute_link
+                Quote_name = Qoute.find("a", {"class", "username"}).text
+                if Qoute.find("div", {"class", "quote-text"}).text == "":
+                    Quote_Content = "No Content"
+                else:
+                    Quote_Content = Qoute.find("div", {"class", "quote-text"}).text
+            dr.get(url + "/" + "".join(User_Name))
+            clean_data(Name, Tag_Name, str(Date), Tag_Tweet, Content_tweet,
+                       Tweet_State[0].text, Tweet_State[1].text, Tweet_State[2].text, Tweet_State[3].text, Picture,
+                       Quote_links, Quote_name, Quote_Content)
+        else: dr.get(url + "/" + "".join(User_Name))
 
-
-def save_data(Data, User_Name):
-    table = mydb["".join(User_Name)]
+def save_data(Data):
+    table = mydb["Posts"]
     data_form = {
         "Name": Data.Name,
         "Tag Name": Data.Tag_Name,
@@ -129,7 +131,7 @@ def save_data(Data, User_Name):
         "Quote Content": Data.Quote_Content
     }
     table.insert_one(data_form)
-    with open("D:/data/" + "".join(User_Name) + ".csv", "a", encoding="utf-8",
+    with open("D:/data/data_tweet.csv", "a", encoding="utf-8",
               newline="") as files:
         writer_file = csv.writer(files)
         writer_file.writerow(
@@ -138,6 +140,13 @@ def save_data(Data, User_Name):
 
 
 def select_user():
+    with open("D:/data/data_tweet.csv", "w", encoding="utf-8",
+              newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(
+            ["Name", "Tag Name", "Date Create Tweet", "Tag Tweet", "Content Tweet", "Comment", "Retweet",
+             "Quote", "Heart", "Image", "Quote Link", "Quote Tag Name", "Quote Content"])
+
     with open("D:/data/User.csv", "r") as file:
         read = pandas.read_csv(file, header=0)
         for i in read.iterrows():
@@ -159,14 +168,6 @@ def select_user():
                     soup = BeautifulSoup(get_page.get_attribute("innerHTML"), "html.parser")
                     posts_more = soup.find_all("a", {"class", "tweet-link"})
                     posts.extend(posts_more)
-
-            with open("D:/data/" + "".join(i[1].values) + ".csv", "w", encoding="utf-8",
-                      newline="") as file:
-                writer = csv.writer(file)
-                writer.writerow(
-                    ["Name", "Tag Name", "Date Create Tweet", "Tag Tweet", "Content Tweet", "Comment", "Retweet",
-                     "Quote", "Heart", "Image", "Quote Link", "Quote Tag Name", "Quote Content"])
-
             crawler_data(posts, i[1].values)
             print("Complete!")
 
@@ -181,7 +182,6 @@ headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 '
                   'Safari/537.36',
 }
-
 
 dr = webdriver.Firefox()
 wait = WebDriverWait(dr, 5)
