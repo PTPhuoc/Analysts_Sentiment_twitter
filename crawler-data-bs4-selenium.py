@@ -54,8 +54,8 @@ def clean_data(Name, Tag_Name, Date, Tag_Tweet, Content_tweet,
                Comment, Retweet, Quote, Heart, Picture,
                Quote_links, Quote_name, Quote_Content):
     Name = remove_emoji(Name)
-    Content_tweet = remove_emoji(Content_tweet.replace(",", "").replace(".", "").replace("\n", "").replace("'", ""))
-    Quote_Content = remove_emoji(Quote_Content.replace(",", "").replace(".", "").replace("\n", "").replace("'", ""))
+    Content_tweet = re.sub(r"[!?@$%^&~`*.,’'()_+=:;-]", "", Content_tweet.replace("\n", ""))
+    Quote_Content = re.sub(r"[!?@$%^&~`*.,’()_+=:;-]", "", Quote_Content.replace("\n", ""))
     Comment = Comment.replace(" ", "").replace(",", "")
     Retweet = Retweet.replace(" ", "").replace(",", "")
     Quote = Quote.replace(" ", "").replace(",", "")
@@ -70,6 +70,14 @@ def clean_data(Name, Tag_Name, Date, Tag_Tweet, Content_tweet,
     save_data(data)
 
 
+def save_list_tag_tweet(list_tweet):
+    tag_tweet = ""
+    for list in list_tweet:
+        tag_tweet = tag_tweet + " " + list.text
+
+    return tag_tweet
+
+
 def crawler_data(posts, User_Name):
     for post in posts:
         dr.get(url + post.get("href"))
@@ -82,7 +90,8 @@ def crawler_data(posts, User_Name):
             if soup_link.find("div", {"class", "tweet-content media-body"}).find("a") is None:
                 Tag_Tweet = "No Tag"
             else:
-                Tag_Tweet = soup_link.find("div", {"class", "tweet-content media-body"}).find("a").text
+                Tag_Tweet = soup_link.find("div", {"class", "tweet-content media-body"}).find_all("a")
+                Tag_Tweet = save_list_tag_tweet(Tag_Tweet)
             Content_tweet = soup_link.find("div", {"class", "tweet-content media-body"}).text
             Tweet_State = soup_link.find("div", {"class", "tweet-stats"}).find_all("div", {"class", "icon-container"})
             Image = soup_link.find("div", {"class", "tweet-body"}).find("div", {"class", "attachments"})

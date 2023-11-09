@@ -1,5 +1,4 @@
-import pandas
-import pymongo
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
 from sparknlp.base import *
@@ -12,11 +11,11 @@ def analysts_sentiment(Data):
     pipelineModel = pipeline.fit(Data.select("Content Tweet"))
     result = pipelineModel.transform(Data.select("Tag Name", "Date Create Tweet", "Comment", "Retweet", "Quote", "Heart", "Image", "Content Tweet"))
     data = result.withColumn("Sentiment", col("Sentiment").cast("string"))
-    # data.write.mode("overwrite").csv("hdfs://localhost:9000/Data_tweet/" + User)
+    # data.write.mode("overwrite").csv("hdfs://localhost:9000/Data_tweet)
     result.show()
 
 
-def select_user():
+def select_data():
     file = spark.read.csv("D:/data/data_tweet.csv", header=True)
     analysts_sentiment(file)
 
@@ -27,5 +26,4 @@ token = Tokenizer().setInputCols(["document"]).setOutputCol("token")
 normalizer = Normalizer().setInputCols(["token"]).setOutputCol("normal")
 vivekn = ViveknSentimentModel.pretrained().setInputCols(["document", "normal"]).setOutputCol("result_sentiment")
 finisher = Finisher().setInputCols("result_sentiment").setOutputCols("Sentiment")
-
-select_user()
+select_data()
